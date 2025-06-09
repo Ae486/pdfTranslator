@@ -101,20 +101,94 @@ python app.py
 6.  **关闭服务**：如果您想停止 Web 服务，点击“关闭服务”按钮即可。
 
 **项目结构：**
-├── main.py                  # 命令行入口，协调整个流程
-├── app.py                   # Gradio Web 应用入口
-├── requirements.txt         # Python 依赖列表
-├── wkhtmltopdf/             # wkhtmltopdf 可执行文件存放目录 (可选，如果添加到系统PATH可省略)
-│   └── bin/
-│       └── wkhtmltopdf.exe  # 或其他操作系统对应的可执行文件
-├── output/                  # 默认输出目录，包含生成的PDF、Markdown和临时HTML文件
-│   └── previews/            # 预览图片存放目录
-├── src/                     # 核心代码目录
-│   ├── __init__.py          # 标记 src 为 Python 包
-│   ├── pdf_to_markdown.py   # 将PDF转换为Markdown的逻辑
-│   ├── translate_markdown.py # Markdown翻译逻辑
-│   ├── markdown_to_pdf.py   # 将Markdown转换为PDF的逻辑 (支持MathJax)
-│   ├── translation_api.py   # 翻译API抽象和百度翻译实现
-│   ├── markdown_translator.py # Markdown内容翻译器
-│   └── config.py           # 项目配置，如百度翻译API密钥、语言设置
-└── README.md               # 项目说明文件
+卷 OS 的文件夹 PATH 列表
+卷序列号为 4288-8F86
+C:.
+│  README.md
+│  README1.md
+│  requirements.txt
+│  test.pdf
+│  test2.pdf
+│  test3.pdf
+│  test4.pdf
+│  
+├─config
+│      config.py
+│      
+├─output
+│  │  test2_translated.pdf
+│  │  test3_translated.pdf
+│  │  test4_translated.pdf
+│  │  test_translated.pdf
+│  │  
+│  ├─images
+│  │      002030b98319ab9d4499ff2f96501fe688b81fdc58fe122e5640df40da86d010.jpg
+│  │      1ed8d377ab2bbac1ca5560cd202cf5e1bb754c40e32ee60f1b50719b971a20e6.jpg
+│  │      2d9f0569af39d75bb428678d0c853e6daad39514eb00f89e8f89e907b215c40e.jpg
+│  │      53a071fd7750b2d2b1f12acec881cb9a2b36368d0ca231877223464764e729e4.jpg
+│  │      7fbb81b7af9a4b00946ffe32cdfba2e3a92677ede592c9309fa9f2d3e9eeb626.jpg
+│  │      812d9fd8d628724da31b94490aaa6c9e0c166f18f77bcbaa31f3c5307bf91a42.jpg
+│  │      8ca13d6d75e17f08c9589baf90596b46aa57b4b2d8827b441f024ad1e093e08c.jpg
+│  │      afa9a34a0df5716be9dfdf9f8de70f6506bc97e44908acdc76ea5992a0ca373b.jpg
+│  │      b5108bdfe59133bf443081d9d95dbf929a546e8fedddc5bf054865aec753b573.jpg
+│  │      b8514a7a40bf8d903a20604322fa16f5d62ebbdda1655eb25539d0c266522660.jpg
+│  │      b9261d2f4d99dcb24f252edc0539ecfa5dc1390d0a1579faf70445e4ad72921e.jpg
+│  │      e3e963d3123cd3ca9f753748bb333d0024fb1e5a17e6fce3182d80728deb190a.jpg
+│  │      
+│  └─previews
+│          page_1.png
+│          page_2.png
+│          page_3.png
+│          
+├─scripts
+├─src
+│  │  config.py
+│  │  markdown_to_pdf.py
+│  │  markdown_translator.py
+│  │  pdf_to_markdown.py
+│  │  translate_markdown.py
+│  │  translation_api.py
+│  │  __init__.py
+│  │  
+│  ├─api
+│  │      pdf_markdown_api.py
+│  │      
+│  ├─pdf_converter
+│  │      md_to_pdf_mathjax.py
+│  │      pdf_processor.py
+│  │      pdf_to_markdown.py
+│  │      
+│  ├─translation
+│  │      markdown_translator.py
+│  │      translation_api.py
+│  │      
+│  ├─utils
+│  └─__pycache__
+│          config.cpython-310.pyc
+│          markdown_to_pdf.cpython-310.pyc
+│          markdown_translator.cpython-310.pyc
+│          pdf_to_markdown.cpython-310.pyc
+│          translate_markdown.cpython-310.pyc
+│          translation_api.cpython-310.pyc
+│          
+├─wkhtmltopdf
+│  │  uninstall.exe
+│  │  
+│  ├─bin
+│  │      wkhtmltoimage.exe
+│  │      wkhtmltopdf.exe
+│  │      wkhtmltox.dll
+│  │      
+│  ├─include
+│  │  └─wkhtmltox
+│  │          dllbegin.inc
+│  │          dllend.inc
+│  │          image.h
+│  │          pdf.h
+│  │          
+│  └─lib
+│          wkhtmltox.lib
+│          
+└─__pycache__
+        main.cpython-310.pyc
+        
