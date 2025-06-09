@@ -99,22 +99,3 @@ python app.py
 4.  **查看日志和预览**：处理日志会实时显示在“处理日志”文本框中。处理完成后，“PDF 预览”区域将显示生成的 PDF 文件，您可以通过滚动来翻页。
 5.  **下载 PDF**：处理完成后，“下载生成的PDF”区域会出现下载链接，点击即可下载最终的 PDF 文件。
 6.  **关闭服务**：如果您想停止 Web 服务，点击“关闭服务”按钮即可。
-
-**项目结构：**
-├── main.py # 命令行入口，协调整个流程
-├── app.py # Gradio Web 应用入口
-├── requirements.txt # Python 依赖列表
-├── wkhtmltopdf/ # wkhtmltopdf 可执行文件存放目录 (可选，如果添加到系统PATH可省略)
-│ └── bin/
-│ └── wkhtmltopdf.exe # 或其他操作系统对应的可执行文件
-├── output/ # 默认输出目录，包含生成的PDF、Markdown和临时HTML文件
-│ └── previews/ # 预览图片存放目录
-├── src/ # 核心代码目录
-│ ├── init.py # 标记 src 为 Python 包
-│ ├── pdf_to_markdown.py # 将PDF转换为Markdown的逻辑
-│ ├── translate_markdown.py # Markdown翻译逻辑
-│ ├── markdown_to_pdf.py # 将Markdown转换为PDF的逻辑 (支持MathJax)
-│ ├── translation_api.py # 翻译API抽象和百度翻译实现
-│ ├── markdown_translator.py # Markdown内容翻译器
-│ └── config.py # 项目配置，如百度翻译API密钥、语言设置
-└── README.md # 项目说明文件
