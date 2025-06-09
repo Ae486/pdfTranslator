@@ -1,8 +1,8 @@
-# PDF 转换、翻译与预览工具
+# 基于minerU的 PDF 转换、翻译与预览工具
 
 ## 简介
 
-本项目是一个高效、灵活的 PDF 文档处理流水线。它能将输入的 PDF 文件精确地转换为结构化的 Markdown，支持可选的自动翻译，并最终将 Markdown 高质量地渲染回 PDF 格式。
+本项目是一个基于minerU的高效、灵活的 PDF 文档处理流水线。它能将输入的 PDF 文件精确地转换为结构化的 Markdown，支持可选的自动翻译，并最终将 Markdown 高质量地渲染回 PDF 格式。
 
 本工具的核心优势在于**对复杂内容的高保真处理**，包括对 LaTeX 数学公式（通过 MathJax 渲染）、图片和表格的完美支持。
 
@@ -14,7 +14,7 @@
 
 ## 功能特性
 
-*   **PDF 到 Markdown**：利用 `magic_pdf` 库，精确地将 PDF 转换为结构化 Markdown，并自动提取图片。
+*   **PDF 到 Markdown**：利用 minerU，精确地将 PDF 转换为结构化 Markdown，并自动提取图片。
 *   **自动翻译**：集成百度翻译 API，可对 Markdown 文本进行自动翻译。
 *   **Markdown 到 PDF**：将 Markdown 渲染为高质量 PDF，特别强化了对 MathJax 公式的支持。
 *   **Web UI**：基于 Gradio 构建，提供文件上传、参数配置、日志显示、实时预览和结果下载等全套功能。
@@ -23,34 +23,6 @@
 
 ---
 
-## 工作流
-
-```mermaid
-graph TD;
-    A[上传 PDF 文件] --> B{Step 1: PDF to Markdown};
-    B --> C[生成 .md 和图片];
-    C --> D{Step 2: 翻译 (可选)};
-    D --> E[生成 _translated.md];
-    E --> F{Step 3: Markdown to PDF};
-    F --> G[生成最终 PDF];
-    subgraph "输入"
-        A
-    end
-    subgraph "处理核心"
-        B
-        D
-        F
-    end
-    subgraph "输出"
-        G
-    end
-    subgraph "中间文件"
-        C
-        E
-    end
-```
-
----
 
 ## 项目结构
 
@@ -76,8 +48,8 @@ graph TD;
 
 1.  **克隆项目**
     ```bash
-    git clone https://github.com/your-username/your-repo-name.git
-    cd your-repo-name
+    git clone https://github.com/Ae486/pdfTranslator
+    cd pdfTranslator
     ```
 
 2.  **配置 MinerU 环境 (必需)**
