@@ -1,4 +1,4 @@
-# 基于minerU的 PDF 转换、翻译与预览工具
+# 基于minerU的 PDF 翻译工具
 
 ## 简介
 
