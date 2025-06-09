@@ -374,8 +374,8 @@ def html_to_pdf(html_file, pdf_file, wkhtmltopdf_path):
             print(f"找到备用路径: {wkhtmltopdf_path}")
         else:
             print("请确认wkhtmltopdf是否已安装并配置了正确的路径。")
-        return False
-    
+            return False
+
     # 设置命令
     cmd = [
         wkhtmltopdf_path,
@@ -398,17 +398,17 @@ def html_to_pdf(html_file, pdf_file, wkhtmltopdf_path):
     try:
         print(f"正在执行PDF转换命令: {' '.join(cmd)}")
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
-    
-    if result.stdout:
+
+        if result.stdout:
             print(f"wkhtmltopdf输出:\n{result.stdout}")
-    if result.stderr:
+        if result.stderr:
             print(f"wkhtmltopdf错误信息:\n{result.stderr}")
-    
+            
         if result.returncode == 0 and os.path.exists(pdf_file) and os.path.getsize(pdf_file) > 0:
             print(f"PDF文件成功生成: {pdf_file}")
-        return True
-    else:
-        print(f"PDF生成失败，返回码: {result.returncode}")
+            return True
+        else:
+            print(f"PDF生成失败，返回码: {result.returncode}")
             if "ContentNotFoundError" in result.stderr:
                 print("错误提示：找不到内容。请检查图片路径是否正确，并确保已开启本地文件访问。")
             return False
@@ -420,28 +420,25 @@ def html_to_pdf(html_file, pdf_file, wkhtmltopdf_path):
         print(f"PDF生成过程中发生未知错误: {e}")
         return False
 
-def convert_md_to_pdf(input_file: str, output_file: str, wkpath: Optional[str] = None, keep_html: bool = False):
+def process_markdown_to_pdf(input_file, output_file, wkpath=None, keep_html=False):
     """
-    将Markdown文件转换为PDF的核心逻辑。
+    将指定的Markdown文件转换为PDF。
+    这是核心逻辑函数，可以被其他脚本导入和调用。
 
     :param input_file: 输入的Markdown文件路径
     :param output_file: 输出的PDF文件路径
-    :param wkpath: wkhtmltopdf可执行文件的路径 (可选)
+    :param wkpath: wkhtmltopdf的可执行文件路径 (可选)
     :param keep_html: 是否保留临时的HTML文件
     """
     # 设置wkhtmltopdf路径
     wkhtmltopdf_path = wkpath or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'wkhtmltopdf', 'bin', 'wkhtmltopdf.exe')
 
-    # 获取输入文件名（不含扩展名）
-    base_name = os.path.splitext(os.path.basename(input_file))[0]
-    
-    # 获取输出目录
     output_dir = os.path.dirname(output_file) or '.'
     os.makedirs(output_dir, exist_ok=True)
-
-    # 临时HTML文件路径
-    temp_html_file = os.path.join(output_dir, f"{base_name}_temp.html")
     
+    base_name = os.path.splitext(os.path.basename(input_file))[0]
+    temp_html_file = os.path.join(output_dir, f"{base_name}_temp.html")
+
     # 转换过程
     try:
         markdown_to_html(input_file, temp_html_file)
@@ -468,15 +465,16 @@ def main():
     
     args = parser.parse_args()
     
+    # 获取输入文件名（不含扩展名）
+    base_name = os.path.splitext(os.path.basename(args.input))[0]
+    
     # 设置默认输出PDF路径
     if not args.output:
-        base_name = os.path.splitext(os.path.basename(args.input))[0]
         output_pdf = f"{base_name}.pdf"
     else:
         output_pdf = args.output
         
-    convert_md_to_pdf(args.input, output_pdf, args.wkpath, args.keep_html)
-
+    process_markdown_to_pdf(args.input, output_pdf, args.wkpath, args.keep_html)
 
 if __name__ == "__main__":
     main() 

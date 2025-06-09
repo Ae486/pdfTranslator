@@ -27,15 +27,15 @@ def translate_file(input_file, output_file=None, from_lang=None, to_lang=None):
     if not os.path.exists(input_file):
         print(f"错误：输入文件 {input_file} 不存在")
         return
-    
+
     # 如果未指定输出文件，则自动生成
     if not output_file:
         name, ext = os.path.splitext(input_file)
         output_file = f"{name}_translated{ext}"
-    
+        
     print(f"开始翻译Markdown文件: {input_file}")
     print(f"翻译结果将保存到: {output_file}")
-    
+
     # 读取文件内容
     with open(input_file, 'r', encoding='utf-8') as f:
         content = f.read()
