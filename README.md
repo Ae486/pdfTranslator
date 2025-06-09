@@ -20,10 +20,9 @@
 
 1.  **克隆项目**：
     ```bash
-    git clone <项目仓库地址> # 如果您有git仓库，请替换为您的仓库地址
+    git clone https://github.com/Ae486/pdfTranslator 
     cd <项目根目录>
     ```
-    如果您没有 Git 仓库，请确保您当前的工作目录就是项目根目录。
 
 2.  **配置mineru环境**
     具体请到：https://github.com/opendatalab/MinerU
@@ -101,22 +100,21 @@ python app.py
 5.  **下载 PDF**：处理完成后，“下载生成的PDF”区域会出现下载链接，点击即可下载最终的 PDF 文件。
 6.  **关闭服务**：如果您想停止 Web 服务，点击“关闭服务”按钮即可。
 
-**项目结构**
-.
-├── main.py # 命令行入口，协调整个流程
-├── app.py # Gradio Web 应用入口
-├── requirements.txt # Python 依赖列表
-├── wkhtmltopdf/ # wkhtmltopdf 可执行文件存放目录 (可选，如果添加到系统PATH可省略)
-│ └── bin/
-│ └── wkhtmltopdf.exe # 或其他操作系统对应的可执行文件
-├── output/ # 默认输出目录，包含生成的PDF、Markdown和临时HTML文件
-│ └── previews/ # 预览图片存放目录
-├── src/ # 核心代码目录
-│ ├── init.py # 标记 src 为 Python 包
-│ ├── pdf_to_markdown.py # 将PDF转换为Markdown的逻辑
-│ ├── translate_markdown.py # Markdown翻译逻辑
-│ ├── markdown_to_pdf.py # 将Markdown转换为PDF的逻辑 (支持MathJax)
-│ ├── translation_api.py # 翻译API抽象和百度翻译实现
-│ ├── markdown_translator.py # Markdown内容翻译器
-│ └── config.py # 项目配置，如百度翻译API密钥、语言设置
-└── README.md # 项目说明文件
+**项目结构：**
+├── main.py                  # 命令行入口，协调整个流程
+├── app.py                   # Gradio Web 应用入口
+├── requirements.txt         # Python 依赖列表
+├── wkhtmltopdf/             # wkhtmltopdf 可执行文件存放目录 (可选，如果添加到系统PATH可省略)
+│   └── bin/
+│       └── wkhtmltopdf.exe  # 或其他操作系统对应的可执行文件
+├── output/                  # 默认输出目录，包含生成的PDF、Markdown和临时HTML文件
+│   └── previews/            # 预览图片存放目录
+├── src/                     # 核心代码目录
+│   ├── __init__.py          # 标记 src 为 Python 包
+│   ├── pdf_to_markdown.py   # 将PDF转换为Markdown的逻辑
+│   ├── translate_markdown.py # Markdown翻译逻辑
+│   ├── markdown_to_pdf.py   # 将Markdown转换为PDF的逻辑 (支持MathJax)
+│   ├── translation_api.py   # 翻译API抽象和百度翻译实现
+│   ├── markdown_translator.py # Markdown内容翻译器
+│   └── config.py           # 项目配置，如百度翻译API密钥、语言设置
+└── README.md               # 项目说明文件
