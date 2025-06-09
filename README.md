@@ -24,7 +24,7 @@
     cd <项目根目录>
     ```
 
-2.  **配置mineru环境**
+2.  **配置mineru环境**：
     具体请到：https://github.com/opendatalab/MinerU
 
 3.  **安装 Python 依赖**：
