@@ -2,9 +2,12 @@ import gradio as gr
 import os
 import base64
 from main import run_full_process
+import src.config as config
 
 # --- 全局设置 ---
 OUTPUT_DIR = "web_output"
+# 将config中的语言列表转换为Gradio下拉菜单可用的格式 (名称, 代码)
+LANG_CHOICES = [(name, code) for code, name in config.SUPPORTED_LANGUAGES.items()]
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
@@ -42,13 +45,18 @@ def update_preview(choice, original_path, result_path):
     return "<div><p style='text-align:center; padding: 20px;'>请选择一个文件进行预览</p></div>"
 
 
-def process_pdf_from_web(pdf_file, skip_translation, keep_intermediate):
+def process_pdf_from_web(pdf_file, skip_translation, keep_intermediate, from_lang, to_lang, app_id, app_key,
+                         page_size, orientation, margin_top, margin_right, margin_bottom, margin_left):
     """
     Web界面调用的主函数。这是一个生成器，逐步yield更新给Gradio界面。
     """
     if pdf_file is None:
-        # gr.Warning("请先上传一个PDF文件！") # 新版Gradio的提示方式
         yield "错误：请先上传一个PDF文件。", None, gr.update(), gr.update(), None
+        return
+
+    # 如果不跳过翻译，但密钥为空，则提示错误
+    if not skip_translation and (not app_id or not app_key):
+        yield "错误：进行翻译需要提供百度翻译API的APP ID和密钥。", None, gr.update(), gr.update(), None
         return
 
     log_history = ""
@@ -59,7 +67,17 @@ def process_pdf_from_web(pdf_file, skip_translation, keep_intermediate):
             pdf_file=pdf_file.name,
             output_dir=OUTPUT_DIR,
             skip_translation=skip_translation,
-            keep_intermediate=keep_intermediate
+            keep_intermediate=keep_intermediate,
+            from_lang=from_lang,
+            to_lang=to_lang,
+            baidu_app_id=app_id,
+            baidu_app_key=app_key,
+            page_size=page_size,
+            orientation=orientation,
+            margin_top=margin_top,
+            margin_right=margin_right,
+            margin_bottom=margin_bottom,
+            margin_left=margin_left
         )
         
         while True:
@@ -97,6 +115,55 @@ with gr.Blocks(title="PDF处理工具", theme=gr.themes.Soft()) as demo:
             gr.Markdown("### 处理选项")
             skip_translation_checkbox = gr.Checkbox(label="跳过翻译步骤", value=False)
             keep_intermediate_checkbox = gr.Checkbox(label="保留中间文件 (.md, .html)", value=False)
+
+            gr.Markdown("### PDF输出样式")
+            with gr.Row():
+                page_size_dropdown = gr.Dropdown(
+                    label="页面大小",
+                    choices=['A4', 'A3', 'A5', 'Letter', 'Legal'],
+                    value='A4',
+                    interactive=True
+                )
+                orientation_dropdown = gr.Dropdown(
+                    label="页面方向",
+                    choices=['Portrait', 'Landscape'],
+                    value='Portrait',
+                    interactive=True
+                )
+            with gr.Accordion("页面边距 (例如 '15mm')", open=False):
+                with gr.Row():
+                    margin_top_textbox = gr.Textbox(label="上边距", value='15mm', interactive=True)
+                    margin_bottom_textbox = gr.Textbox(label="下边距", value='15mm', interactive=True)
+                with gr.Row():
+                    margin_left_textbox = gr.Textbox(label="左边距", value='15mm', interactive=True)
+                    margin_right_textbox = gr.Textbox(label="右边距", value='15mm', interactive=True)
+            
+            with gr.Accordion("API密钥配置 (可选)", open=False):
+                baidu_app_id_input = gr.Textbox(
+                    label="百度翻译 APP ID", 
+                    placeholder="如果留空，将使用config.py中的配置",
+                    interactive=True
+                )
+                baidu_app_key_input = gr.Textbox(
+                    label="百度翻译 APP KEY", 
+                    placeholder="如果留空，将使用config.py中的配置",
+                    type="password",
+                    interactive=True
+                )
+
+            gr.Markdown("### 翻译语言")
+            with gr.Row():
+                from_lang_dropdown = gr.Dropdown(
+                    label="源语言", 
+                    choices=LANG_CHOICES, 
+                    value=config.SOURCE_LANG
+                )
+                to_lang_dropdown = gr.Dropdown(
+                    label="目标语言", 
+                    choices=LANG_CHOICES, 
+                    value=config.TARGET_LANG
+                )
+
             run_button = gr.Button("开始处理", variant="primary", scale=2)
 
         # --- 右侧显示区域 ---
@@ -134,7 +201,21 @@ with gr.Blocks(title="PDF处理工具", theme=gr.themes.Soft()) as demo:
     # 3. 点击"开始处理"按钮，执行主流程
     run_button.click(
         fn=process_pdf_from_web,
-        inputs=[pdf_input, skip_translation_checkbox, keep_intermediate_checkbox],
+        inputs=[
+            pdf_input, 
+            skip_translation_checkbox, 
+            keep_intermediate_checkbox,
+            from_lang_dropdown,
+            to_lang_dropdown,
+            baidu_app_id_input,
+            baidu_app_key_input,
+            page_size_dropdown,
+            orientation_dropdown,
+            margin_top_textbox,
+            margin_right_textbox,
+            margin_bottom_textbox,
+            margin_left_textbox
+        ],
         outputs=[
             log_output, 
             pdf_output, 

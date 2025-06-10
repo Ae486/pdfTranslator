@@ -1,39 +1,14 @@
-requests
-markdown
-PyMuPDF
-magic-pdf
-bce-python-sdk
-python-docx
-beautifulsoup4
-lxml
-Jinja2
-Pillow
-opencv-python
-numpy
-pandas
-scikit-learn
-scipy
-joblib
-threadpoolctl
-chardet
-pytesseract
-PUnL-model
-gdown
-huggingface-hub
-safetensors
-tokenizers
-transformers
-regex
-packaging
-torch
-typing-extensions
-sympy
-networkx
-mpmath
-filetype
-colorlog
+# Web UI
 gradio
-openai
-boto3
-weasyprint
-pdfkit 
+
+# PDF to Markdown Conversion
+magic-pdf
+
+# Markdown to HTML Conversion
+Markdown
+
+# HTTP Requests for Translation API
+requests
+
+# PyMuPDF is a dependency of magic-pdf, so it's good to keep it explicit.
+PyMuPDF 

@@ -8,6 +8,7 @@ import shutil
 import time  # 添加time模块导入
 from typing import Optional
 import html
+import pdfkit
 
 
 #    - \tiny    : 极小字体
@@ -361,120 +362,146 @@ def markdown_to_html(markdown_file, html_file):
 # --zoom <factor>     : 设置页面缩放因子(1.0-3.0)
 # --javascript-delay <msec> : 等待JavaScript执行的时间(毫秒)
 
-def html_to_pdf(html_file, pdf_file, wkhtmltopdf_path):
-    """将HTML转换为PDF，确保启用JavaScript以渲染MathJax"""
-    
-    # 检查wkhtmltopdf路径是否有效
-    if not wkhtmltopdf_path or not os.path.exists(wkhtmltopdf_path):
-        print(f"错误: wkhtmltopdf可执行文件不存在于: {wkhtmltopdf_path}")
-        # 尝试从环境变量或通用路径中查找
-        wk_path_from_env = shutil.which("wkhtmltopdf")
-        if wk_path_from_env:
-            wkhtmltopdf_path = wk_path_from_env
-            print(f"找到备用路径: {wkhtmltopdf_path}")
-        else:
-            print("请确认wkhtmltopdf是否已安装并配置了正确的路径。")
-            return False
-
-    # 设置命令
-    cmd = [
-        wkhtmltopdf_path,
-        '--encoding', 'UTF-8',
-        '--enable-javascript',
-        '--javascript-delay', '10000', # 增加等待时间确保MathJax渲染
-        '--dpi', '300',
-        '--image-quality', '100',
-        '--page-size', 'A4',
-        '--margin-top', '1cm',
-        '--margin-right', '1cm',
-        '--margin-bottom', '1cm',
-        '--margin-left', '1cm',
-        '--no-outline',
-        '--enable-local-file-access', # 允许访问本地文件
-        html_file,
-        pdf_file
-    ]
-    
+def html_to_pdf(html_file, pdf_file, wkhtmltopdf_path, pdf_options=None):
+    """使用wkhtmltopdf将HTML转换为PDF"""
     try:
-        print(f"正在执行PDF转换命令: {' '.join(cmd)}")
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        # 确保路径被正确引用
+        if " " in wkhtmltopdf_path and not wkhtmltopdf_path.startswith('"'):
+            wkhtmltopdf_path = f'"{wkhtmltopdf_path}"'
+            
+        # 显式创建配置对象
+        config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
+        
+        # 定义wkhtmltopdf的默认选项
+        options = {
+            'encoding': "UTF-8",
+            'custom-header': [
+                ('Accept-Encoding', 'gzip')
+            ],
+            '--enable-local-file-access': None,  # 允许访问本地文件
+        }
 
-        if result.stdout:
-            print(f"wkhtmltopdf输出:\n{result.stdout}")
-        if result.stderr:
-            print(f"wkhtmltopdf错误信息:\n{result.stderr}")
-            
-        if result.returncode == 0 and os.path.exists(pdf_file) and os.path.getsize(pdf_file) > 0:
-            print(f"PDF文件成功生成: {pdf_file}")
-            return True
-        else:
-            print(f"PDF生成失败，返回码: {result.returncode}")
-            if "ContentNotFoundError" in result.stderr:
-                print("错误提示：找不到内容。请检查图片路径是否正确，并确保已开启本地文件访问。")
-            return False
-            
+        # 合并用户自定义选项
+        if pdf_options:
+            options.update(pdf_options)
+        
+        # 转换并处理可能的超时
+        # 注意：pdfkit在Windows上可能会有bug，即使成功也可能抛出OSError。
+        # 如果错误信息包含 "Done", "loaded" 等关键字，我们认为它是成功的。
+        pdfkit.from_file(html_file, pdf_file, configuration=config, options=options)
+        
+        print(f"成功将HTML转换到PDF: {pdf_file}")
+        
     except FileNotFoundError:
         print(f"错误: 'wkhtmltopdf'未找到。请确保它已安装并位于系统PATH中。")
         return False
     except Exception as e:
-        print(f"PDF生成过程中发生未知错误: {e}")
+        print(f"将HTML转换为PDF时发生未知错误: {e}")
         return False
 
-def process_markdown_to_pdf(input_file, output_file, wkpath=None, keep_html=False):
+def process_markdown_to_pdf(input_file, output_file, wkpath=None, keep_html=False,
+                            page_size='A4', orientation='Portrait', 
+                            margin_top='15mm', margin_right='15mm', 
+                            margin_bottom='15mm', margin_left='15mm'):
     """
-    将指定的Markdown文件转换为PDF。
-    这是核心逻辑函数，可以被其他脚本导入和调用。
-
-    :param input_file: 输入的Markdown文件路径
-    :param output_file: 输出的PDF文件路径
-    :param wkpath: wkhtmltopdf的可执行文件路径 (可选)
-    :param keep_html: 是否保留临时的HTML文件
+    处理完整的Markdown到PDF转换流程。
+    新增PDF样式参数。
     """
-    # 设置wkhtmltopdf路径
-    wkhtmltopdf_path = wkpath or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'wkhtmltopdf', 'bin', 'wkhtmltopdf.exe')
+    # 检查输入文件是否存在
+    if not os.path.exists(input_file):
+        print(f"错误: 输入文件不存在: {input_file}")
+        return
 
-    output_dir = os.path.dirname(output_file) or '.'
-    os.makedirs(output_dir, exist_ok=True)
+    # 定义临时HTML文件路径
+    temp_dir = os.path.join(os.path.dirname(os.path.abspath(output_file)), 'temp_output')
+    os.makedirs(temp_dir, exist_ok=True)
     
     base_name = os.path.splitext(os.path.basename(input_file))[0]
-    temp_html_file = os.path.join(output_dir, f"{base_name}_temp.html")
+    html_output_path = os.path.join(temp_dir, f"{base_name}.html")
 
-    # 转换过程
-    try:
-        markdown_to_html(input_file, temp_html_file)
-        print(f"临时HTML文件已生成: {temp_html_file}")
-        
-        if html_to_pdf(temp_html_file, output_file, wkhtmltopdf_path):
-            print(f"转换成功！PDF已保存到: {output_file}")
-        else:
-            print("转换失败。")
-            
-    finally:
-        # 清理临时HTML文件
-        if not keep_html and os.path.exists(temp_html_file):
-            os.remove(temp_html_file)
-            print(f"临时HTML文件已删除: {temp_html_file}")
+    # Step 1: Convert Markdown to HTML with MathJax support
+    markdown_to_html(input_file, html_output_path)
+    
+    # Step 2: Determine wkhtmltopdf path
+    if wkpath and os.path.exists(wkpath):
+        wkhtmltopdf_path = wkpath
+    else:
+        # 否则，尝试从通用位置或PATH中找到它
+        try:
+            # 对于Windows， अक्सर在Program Files中
+            possible_path = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+            if os.path.exists(possible_path):
+                 wkhtmltopdf_path = possible_path
+            else:
+                # 对于Linux/macOS，通常在PATH中
+                wkhtmltopdf_path = subprocess.check_output(['which', 'wkhtmltopdf']).strip().decode('utf-8')
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            print("错误: 无法自动找到wkhtmltopdf。请使用 --wkpath 参数指定路径。")
+            # 清理临时文件后退出
+            if not keep_html and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+            return
+
+    # Step 3: Convert HTML to PDF with new options
+    pdf_output_path = output_file
+    
+    # 构建PDF选项字典
+    pdf_options = {
+        'page-size': page_size,
+        'orientation': orientation,
+        'margin-top': margin_top,
+        'margin-right': margin_right,
+        'margin-bottom': margin_bottom,
+        'margin-left': margin_left,
+    }
+
+    html_to_pdf(html_output_path, pdf_output_path, wkhtmltopdf_path, pdf_options)
+
+    # Step 4: Clean up temporary files
+    if not keep_html:
+        try:
+            shutil.rmtree(temp_dir)
+            print(f"已清理临时目录: {temp_dir}")
+        except OSError as e:
+            print(f"清理临时目录时出错: {e}")
 
 def main():
-    """主函数，用于命令行调用"""
-    parser = argparse.ArgumentParser(description="使用MathJax渲染LaTeX公式的Markdown到PDF转换")
-    parser.add_argument("-i", "--input", required=True, help="输入Markdown文件路径")
-    parser.add_argument("-o", "--output", help="输出PDF文件路径")
-    parser.add_argument("--wkpath", help="wkhtmltopdf可执行文件的路径")
-    parser.add_argument("--keep-html", action="store_true", help="如果设置，将保留临时生成的HTML文件")
-    
-    args = parser.parse_args()
-    
-    # 获取输入文件名（不含扩展名）
-    base_name = os.path.splitext(os.path.basename(args.input))[0]
-    
-    # 设置默认输出PDF路径
-    if not args.output:
-        output_pdf = f"{base_name}.pdf"
-    else:
-        output_pdf = args.output
-        
-    process_markdown_to_pdf(args.input, output_pdf, args.wkpath, args.keep_html)
+    """主函数，用于命令行执行"""
+    parser = argparse.ArgumentParser(description="将Markdown文件（包括复杂的LaTeX公式）转换为高质量的PDF。")
+    parser.add_argument("input_file", help="输入的Markdown文件路径。")
+    parser.add_argument("-o", "--output", help="输出的PDF文件路径。如果未提供，则默认为输入文件名（扩展名更改为.pdf）。")
+    parser.add_argument("--wkpath", help="wkhtmltopdf的可执行文件路径。如果未提供，脚本会尝试在环境变量中查找。")
+    parser.add_argument("--keep-html", action="store_true", help="保留转换过程中生成的中间HTML文件。")
+    # 新增PDF样式选项
+    parser.add_argument('--page-size', default='A4', help='PDF页面大小 (例如: A4, Letter)。 默认: A4')
+    parser.add_argument('--orientation', default='Portrait', choices=['Portrait', 'Landscape'], help='页面方向 (Portrait 或 Landscape)。 默认: Portrait')
+    parser.add_argument('--margin-top', default='15mm', help='上边距 (例如: 10mm)。 默认: 15mm')
+    parser.add_argument('--margin-right', default='15mm', help='右边距 (例如: 10mm)。 默认: 15mm')
+    parser.add_argument('--margin-bottom', default='15mm', help='下边距 (例如: 10mm)。 默认: 15mm')
+    parser.add_argument('--margin-left', default='15mm', help='左边距 (例如: 10mm)。 默认: 15mm')
 
-if __name__ == "__main__":
+    args = parser.parse_args()
+
+    # 确定输出文件路径
+    if args.output:
+        output_file = args.output
+    else:
+        output_file = os.path.splitext(args.input_file)[0] + ".pdf"
+
+    # 处理文件
+    process_markdown_to_pdf(
+        args.input_file, 
+        output_file, 
+        args.wkpath, 
+        args.keep_html,
+        page_size=args.page_size,
+        orientation=args.orientation,
+        margin_top=args.margin_top,
+        margin_right=args.margin_right,
+        margin_bottom=args.margin_bottom,
+        margin_left=args.margin_left
+    )
+
+
+if __name__ == '__main__':
     main() 

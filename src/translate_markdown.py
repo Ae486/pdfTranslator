@@ -14,7 +14,7 @@ from markdown_translator import MarkdownTranslator
 import config
 
 
-def translate_file(input_file, output_file=None, from_lang=None, to_lang=None):
+def process_translation(input_file, output_file=None, from_lang=None, to_lang=None, app_id=None, app_key=None):
     """
     翻译指定的Markdown文件
     
@@ -22,20 +22,22 @@ def translate_file(input_file, output_file=None, from_lang=None, to_lang=None):
     :param output_file: 输出文件路径 (可选)
     :param from_lang: 源语言 (可选)
     :param to_lang: 目标语言 (可选)
+    :param app_id: 百度翻译APP ID
+    :param app_key: 百度翻译密钥
     """
     # 检查输入文件是否存在
     if not os.path.exists(input_file):
         print(f"错误：输入文件 {input_file} 不存在")
-        return
-
+        return None, "输入文件不存在"
+    
     # 如果未指定输出文件，则自动生成
     if not output_file:
         name, ext = os.path.splitext(input_file)
         output_file = f"{name}_translated{ext}"
-        
+    
     print(f"开始翻译Markdown文件: {input_file}")
     print(f"翻译结果将保存到: {output_file}")
-
+    
     # 读取文件内容
     with open(input_file, 'r', encoding='utf-8') as f:
         content = f.read()
@@ -57,16 +59,14 @@ def translate_file(input_file, output_file=None, from_lang=None, to_lang=None):
     source_lang = from_lang or config.SOURCE_LANG
     target_lang = to_lang or config.TARGET_LANG
     
-    # 检查百度翻译API的配置
-    if not config.BAIDU_TRANSLATE_APP_ID or not config.BAIDU_TRANSLATE_APP_KEY:
-        print("错误：请在config.py中配置百度翻译API的APP ID和密钥")
-        return
+    # 检查API密钥是否提供
+    if not app_id or not app_key:
+        error_msg = "错误：必须提供百度翻译API的APP ID和密钥"
+        print(error_msg)
+        return None, error_msg
     
     # 创建翻译API实例
-    translator = BaiduTranslationAPI(
-        app_id=config.BAIDU_TRANSLATE_APP_ID,
-        app_key=config.BAIDU_TRANSLATE_APP_KEY
-    )
+    translator = BaiduTranslationAPI(app_id=app_id, app_key=app_key)
     
     # 创建Markdown翻译器
     md_translator = MarkdownTranslator(
@@ -90,9 +90,12 @@ def translate_file(input_file, output_file=None, from_lang=None, to_lang=None):
             f.write(translated_result)
         
         print(f"翻译完成！结果已保存到: {output_file}")
+        return output_file, None
         
     except Exception as e:
-        print(f"翻译过程中出错: {e}")
+        error_msg = f"翻译过程中出错: {e}"
+        print(error_msg)
+        return None, error_msg
 
 def main():
     """测试翻译Markdown文件的主函数"""
@@ -105,7 +108,15 @@ def main():
     
     args = parser.parse_args()
     
-    translate_file(args.input_file, args.output, args.from_lang, args.to_lang)
+    # 注意：从命令行独立运行时，你需要确保config.py中有密钥，或通过其他方式传入
+    process_translation(
+        args.input_file, 
+        args.output, 
+        args.from_lang, 
+        args.to_lang,
+        config.BAIDU_TRANSLATE_APP_ID,
+        config.BAIDU_TRANSLATE_APP_KEY
+    )
 
 
 if __name__ == "__main__":
