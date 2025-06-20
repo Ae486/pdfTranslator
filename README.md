@@ -133,3 +133,5 @@ python main.py <输入的PDF文件路径> [选项]
     # 将PDF渲染为A3横向页面，并减小边距
     python main.py assets/test3.pdf --page-size A3 --orientation Landscape --margin-top 10mm --margin-bottom 10mm
     ```
+**待处理（大概永远不会）**
+在遇到特定格式的LaTeX公式会与识别表格的逻辑冲突，可以在翻译中转时添加标识符以便后续识别。
